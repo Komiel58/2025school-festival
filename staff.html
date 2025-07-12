@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>受信した注文</title>
+</head>
+<body>
+    
+
+    <h1>注文履歴</h1>
+    <div id="receivedOrders"></div>
+    <h2 id="totalPrice">合計金額: ¥0</h2>
+
+    <script src="main.js"></script>
+    <script>
+        window.onload = () => {
+            displayReceivedOrders();
+            calculateTotal();
+        };
+    </script>
+
+
+</body>
+</html>

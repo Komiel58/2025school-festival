@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会計</title>
+</head>
+<body>
+    
+
+   <h1>未会計注文一覧</h1>
+    <div id="unpaidOrders"></div>
+
+    <script>
+        function loadOrders() {
+            const stored = localStorage.getItem("ordersHistory");
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveOrders(orders) {
+            localStorage.setItem("ordersHistory", JSON.stringify(orders));
+        }
+
+        function markAsPaid(index) {
+            const orders = loadOrders();
+            orders[index].paid = true;
+            saveOrders(orders);
+            displayUnpaidOrders();
+        }
+
+        function displayUnpaidOrders() {
+            const container = document.getElementById("unpaidOrders");
+            const orders = loadOrders();
+            container.innerHTML = "";
+
+            orders.forEach((order, index) => {
+                if (!order.paid) {
+                    const section = document.createElement("section");
+                    const header = document.createElement("h3");
+                    header.textContent = `注文番号: ${order.orderNumber}（${order.timestamp}）`;
+                    section.appendChild(header);
+
+                    const ul = document.createElement("ul");
+                    order.items.forEach(item => {
+                        const li = document.createElement("li");
+                        li.textContent = `${item.name} - ¥${item.price}`;
+                        ul.appendChild(li);
+                    });
+                    section.appendChild(ul);
+
+                    const button = document.createElement("button");
+                    button.textContent = "会計する";
+                    button.onclick = () => markAsPaid(index);
+                    section.appendChild(button);
+
+                    container.appendChild(section);
+                }
+            });
+        }
+
+        window.onload = () => {
+            displayUnpaidOrders();
+        };
+    </script>
+
+</body>
+</html>
