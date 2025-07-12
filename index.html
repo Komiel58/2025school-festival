@@ -1,26 +1,100 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>受注</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>注文画面（Firebase対応）</title>
+    <link rel="stylesheet" href="style.css">
 
+    <!-- Firebase SDK -->
+    https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js
+    https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js
 </head>
 <body>
-
-
-   <h1>メニュー</h1>
+    <h1>メニュー</h1>
     <button onclick="addItem('ハンバーガー', 800)">ハンバーガー ¥800</button>
     <button onclick="addItem('ワッフル', 400)">ワッフル ¥400</button>
     <button onclick="addItem('山口シング', 10)">山口シング ¥10</button>
 
     <h2>注文内容</h2>
     <ul id="orderList"></ul>
-    <p id="liveTotal">現在の合計金額：¥0</p>
+
+    <div id="liveTotal">現在の合計金額：¥0</div>
+
     <button onclick="sendOrder()">注文を送信</button>
 
-    <script src="main.js"></script>
+    <div id="orderNumberDisplay" style="font-size: 2em; font-weight: bold; color: darkblue; margin-top: 20px;"></div>
 
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyClT68mSngMVqcfTg3XncGqlHB9BRyB4PA",
+            authDomain: "school-festival-1daf0.firebaseapp.com",
+            projectId: "school-festival-1daf0",
+            storageBucket: "school-festival-1daf0.appspot.com",
+            messagingSenderId: "1001219715401",
+            appId: "1:1001219715401:web:32abdb07bf06e38519ea98",
+            measurementId: "G-J9SZ0N4BT6"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let orders = [];
+
+        function addItem(name, price) {
+            orders.push({ name, price, count: 1 });
+            updateOrderList();
+            updateLiveTotal();
+        }
+
+        function updateOrderList() {
+            const list = document.getElementById("orderList");
+            if (!list) return;
+            list.innerHTML = "";
+            orders.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = `${item.name} - ¥${item.price}`;
+                list.appendChild(li);
+            });
+        }
+
+        function updateLiveTotal() {
+            let total = 0;
+            orders.forEach(item => {
+                const count = item.count ?? 1;
+                total += item.price * count;
+            });
+            const display = document.getElementById("liveTotal");
+            if (display) {
+                display.textContent = `現在の合計金額：¥${total.toLocaleString()}`;
+            }
+        }
+
+        async function sendOrder() {
+            try {
+                const snapshot = await db.collection("orders").get();
+                const orderNumber = `ORDER-${(snapshot.size + 1).toString().padStart(3, '0')}`;
+                const newOrder = {
+                    orderNumber,
+                    timestamp: new Date().toLocaleString(),
+                    items: [...orders],
+                    paid: false
+                };
+                await db.collection("orders").add(newOrder);
+                alert(`注文番号 ${orderNumber} を送信しました！`);
+                updateOrderNumberDisplay(orderNumber);
+                orders = [];
+                updateOrderList();
+                updateLiveTotal();
+            } catch (error) {
+                console.error("注文送信エラー:", error);
+            }
+        }
+
+        function updateOrderNumberDisplay(orderNumber) {
+            const display = document.getElementById("orderNumberDisplay");
+            display.textContent = `注文番号: ${orderNumber}`;
+        }
+    </script>
 </body>
 </html>
